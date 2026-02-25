@@ -1,0 +1,39 @@
+.verify-container {
+  padding: 30px;
+}
+
+.verify-container h1 {
+  color: #2E7D32;
+  margin-bottom: 20px;
+}
+
+.verify-box {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.verify-box input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.verify-result {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 12px;
+  margin-top: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.verify-result p {
+  margin: 8px 0;
+}
+
+@media (max-width: 768px) {
+  .verify-box {
+    flex-direction: column;
+  }
+}

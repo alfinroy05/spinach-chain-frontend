@@ -1,0 +1,60 @@
+.info-card {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 14px;
+  width: 220px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: 0.3s ease;
+}
+
+.info-card:hover {
+  transform: translateY(-4px);
+}
+
+.card-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-icon {
+  font-size: 22px;
+}
+
+.card-title {
+  margin: 0;
+  font-size: 15px;
+  color: #555;
+}
+
+.card-value {
+  margin-top: 12px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #2E7D32;
+}
+
+/* Status Variants */
+
+.info-card.success {
+  border-left: 6px solid #2E7D32;
+}
+
+.info-card.warning {
+  border-left: 6px solid #FFA000;
+}
+
+.info-card.danger {
+  border-left: 6px solid #E53935;
+}
+
+.info-card.normal {
+  border-left: 6px solid #90A4AE;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .info-card {
+    width: 100%;
+  }
+}

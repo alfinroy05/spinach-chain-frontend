@@ -1,0 +1,27 @@
+.dashboard-container {
+  padding: 30px;
+}
+
+.dashboard-container h1 {
+  color: #2E7D32;
+  margin-bottom: 20px;
+}
+
+.card-grid {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 25px;
+}
+
+.charts-section {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+@media (max-width: 768px) {
+  .card-grid {
+    flex-direction: column;
+  }
+}

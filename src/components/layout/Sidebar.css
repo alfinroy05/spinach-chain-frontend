@@ -1,0 +1,50 @@
+.sidebar {
+  width: 240px;
+  height: 100vh;
+  background-color: #2E7D32;
+  color: white;
+  padding: 20px;
+  position: fixed;
+  left: 0;
+  top: 0;
+}
+
+.sidebar-title {
+  margin-bottom: 30px;
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+}
+
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.sidebar-link {
+  text-decoration: none;
+  color: white;
+  font-size: 16px;
+  padding: 10px;
+  border-radius: 8px;
+  transition: background 0.3s;
+}
+
+.sidebar-link:hover {
+  background-color: #66BB6A;
+}
+
+/* Active Route Highlight */
+.sidebar-link.active {
+  background-color: #1B5E20;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+  }
+}

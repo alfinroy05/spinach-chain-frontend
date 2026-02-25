@@ -1,0 +1,150 @@
+/* ===========================
+   APP LAYOUT STRUCTURE
+=========================== */
+
+.app-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ===========================
+   SIDEBAR
+=========================== */
+
+.sidebar {
+  width: 240px;
+  min-height: 100vh;
+  background-color: var(--primary-green);
+  color: white;
+  position: fixed;
+  left: 0;
+  top: 0;
+}
+
+/* ===========================
+   MAIN CONTENT AREA
+=========================== */
+
+.main-content {
+  margin-left: 240px;
+  padding: 30px;
+  width: 100%;
+  transition: margin-left 0.3s ease;
+}
+
+/* ===========================
+   PAGE WRAPPER
+=========================== */
+
+.page-wrapper {
+  max-width: 1200px;
+  margin: auto;
+}
+
+/* ===========================
+   SECTION SPACING
+=========================== */
+
+.section {
+  margin-bottom: 40px;
+}
+
+/* ===========================
+   HEADER AREA
+=========================== */
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+/* ===========================
+   GRID LAYOUTS
+=========================== */
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+/* ===========================
+   CARD GRID (FOR DASHBOARD)
+=========================== */
+
+.card-grid {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+/* ===========================
+   FORM LAYOUT
+=========================== */
+
+.form-container {
+  background: var(--card-bg);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  font-weight: 500;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+/* ===========================
+   RESPONSIVE DESIGN
+=========================== */
+
+@media (max-width: 1024px) {
+  .grid-3 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .sidebar {
+    position: relative;
+    width: 100%;
+    height: auto;
+  }
+
+  .main-content {
+    margin-left: 0;
+    padding: 20px;
+  }
+
+  .grid-2,
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}

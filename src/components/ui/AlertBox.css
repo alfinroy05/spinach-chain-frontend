@@ -1,0 +1,42 @@
+.alert-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  border-radius: 10px;
+  font-weight: 500;
+  margin-top: 20px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Success */
+.alert-box.success {
+  background-color: #D4EDDA;
+  color: #155724;
+}
+
+/* Warning */
+.alert-box.warning {
+  background-color: #FFF3CD;
+  color: #856404;
+}
+
+/* Danger */
+.alert-box.danger {
+  background-color: #F8D7DA;
+  color: #721C24;
+}
+
+/* Info */
+.alert-box.info {
+  background-color: #D1ECF1;
+  color: #0C5460;
+}
+
+.alert-icon {
+  font-size: 18px;
+}
+
+.alert-message {
+  font-size: 15px;
+}

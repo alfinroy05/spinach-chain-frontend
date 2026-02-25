@@ -1,0 +1,162 @@
+/* ===========================
+   RESET STYLES
+=========================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  font-family: 'Poppins', sans-serif;
+  min-height: 100%;
+  scroll-behavior: smooth;
+}
+
+/* ===========================
+   THEME COLORS
+=========================== */
+
+:root {
+  --primary-green: #2E7D32;
+  --light-green: #66BB6A;
+  --background-light: #F1F8E9;
+  --background-dark: #121212;
+  --card-bg: #ffffff;
+  --text-dark: #1B1B1B;
+  --text-light: #ffffff;
+  --danger-red: #E53935;
+  --warning-orange: #FFA000;
+}
+
+/* ===========================
+   LIGHT MODE
+=========================== */
+
+body.light {
+  background-color: var(--background-light);
+  color: var(--text-dark);
+}
+
+/* ===========================
+   DARK MODE
+=========================== */
+
+body.dark {
+  background-color: var(--background-dark);
+  color: var(--text-light);
+}
+
+/* ===========================
+   HEADINGS
+=========================== */
+
+h1, h2, h3, h4 {
+  color: var(--primary-green);
+  margin-bottom: 10px;
+}
+
+/* ===========================
+   LINKS
+=========================== */
+
+a {
+  text-decoration: none;
+  color: var(--primary-green);
+  transition: 0.3s ease;
+}
+
+a:hover {
+  opacity: 0.8;
+}
+
+/* ===========================
+   BUTTON RESET
+=========================== */
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* ===========================
+   INPUT FIELDS
+=========================== */
+
+input, textarea {
+  font-family: inherit;
+  outline: none;
+}
+
+/* ===========================
+   SCROLLBAR (Modern Look)
+=========================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--light-green);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ===========================
+   CONTAINER UTILITY
+=========================== */
+
+.container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 20px;
+}
+
+/* ===========================
+   CARD DEFAULT STYLE
+=========================== */
+
+.card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* ===========================
+   FLEX UTILITIES
+=========================== */
+
+.flex {
+  display: flex;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ===========================
+   RESPONSIVE BASE
+=========================== */
+
+@media (max-width: 768px) {
+  h1 {
+    font-size: 22px;
+  }
+
+  .container {
+    padding: 15px;
+  }
+}

@@ -1,0 +1,21 @@
+.coldchain-container {
+  padding: 30px;
+}
+
+.coldchain-container h1 {
+  color: #2E7D32;
+  margin-bottom: 20px;
+}
+
+.card-grid {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+  .card-grid {
+    flex-direction: column;
+  }
+}

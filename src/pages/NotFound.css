@@ -1,0 +1,27 @@
+.notfound-container {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.error-code {
+  font-size: 100px;
+  margin: 0;
+  color: #2E7D32;
+}
+
+.notfound-container h2 {
+  margin: 10px 0;
+  color: #444;
+}
+
+.notfound-container p {
+  margin-bottom: 30px;
+  color: #666;
+  font-size: 16px;
+}
+
+@media (max-width: 768px) {
+  .error-code {
+    font-size: 70px;
+  }
+}

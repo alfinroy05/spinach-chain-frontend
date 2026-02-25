@@ -1,0 +1,39 @@
+.footer {
+  background-color: #2E7D32;
+  color: white;
+  padding: 25px 40px;
+  margin-top: 50px;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.footer-left h3 {
+  margin-bottom: 8px;
+}
+
+.footer-center p,
+.footer-right p {
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+.footer-right {
+  text-align: right;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+
+  .footer-right {
+    text-align: center;
+  }
+}

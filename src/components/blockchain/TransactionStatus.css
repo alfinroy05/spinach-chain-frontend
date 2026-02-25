@@ -1,0 +1,35 @@
+.tx-container {
+  padding: 18px;
+  border-radius: 12px;
+  margin-top: 20px;
+  text-align: center;
+  font-weight: 500;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.tx-container.pending {
+  background-color: #FFF3CD;
+  color: #856404;
+}
+
+.tx-container.success {
+  background-color: #D4EDDA;
+  color: #155724;
+}
+
+.tx-container.error {
+  background-color: #F8D7DA;
+  color: #721C24;
+}
+
+.tx-link {
+  display: inline-block;
+  margin-top: 10px;
+  color: #2E7D32;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.tx-link:hover {
+  text-decoration: underline;
+}
