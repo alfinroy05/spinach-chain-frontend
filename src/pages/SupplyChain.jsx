@@ -1,135 +1,127 @@
 import React, { useState, useEffect } from "react";
-import { useBlockchainContext } from "../context/BlockchainContext";
-
+import useBlockchain from "../hooks/useBlockchain";
 
 const SupplyChain = () => {
   const {
     account,
     connectWallet,
-    contract,
-    transferOwnership
-  } = useBlockchainContext();
+    getBatch,
+    transferOwnership,
+    updateState
+  } = useBlockchain();
 
   const [batchId, setBatchId] = useState("");
   const [newOwner, setNewOwner] = useState("");
+  const [selectedRole, setSelectedRole] = useState("");
   const [batchData, setBatchData] = useState(null);
-  const [ownershipHistory, setOwnershipHistory] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // -----------------------------
-  // Fetch Batch Info
-  // -----------------------------
-  const fetchBatch = async (id) => {
-    if (!contract || !id) return;
+  // --------------------------------------------------
+  // ROLE → STATE INDEX
+  // --------------------------------------------------
+  const roleToState = {
+    Transporter: 1,     // InTransit
+    ColdStorage: 2,     // InColdStorage
+    Retailer: 3         // Delivered
+  };
 
+  const stateLabels = [
+    "Harvested (Farmer)",
+    "In Transit (Transporter)",
+    "In Cold Storage",
+    "Delivered (Retailer)",
+    "Rejected"
+  ];
+
+  // --------------------------------------------------
+  // FETCH BATCH
+  // --------------------------------------------------
+  const fetchBatch = async (id) => {
     try {
-      const batch = await contract.getBatch(id);
+      const batch = await getBatch(id);
 
       setBatchData({
         batchId: batch[0],
         ipfsCID: batch[1],
         merkleRoot: batch[2],
-        owner: batch[3],
-        state: Number(batch[4])
+        farmer: batch[3],
+        currentOwner: batch[4],
+        harvestTimestamp: batch[5],
+        state: Number(batch[6]),
+        coldChainViolated: batch[7]
       });
 
     } catch (err) {
-      console.error("Error fetching batch:", err);
+      console.error("Fetch Batch Error:", err);
       setBatchData(null);
     }
   };
 
-  // -----------------------------
-  // Fetch Ownership History
-  // -----------------------------
-  const fetchOwnershipHistory = async (id) => {
-    if (!contract || !id) return;
-
-    try {
-      const filter = contract.filters.OwnershipTransferred(id);
-      const events = await contract.queryFilter(filter);
-
-      const history = events.map((event) => ({
-        from: event.args.from,
-        to: event.args.to,
-        state: Number(event.args.newState)
-      }));
-
-      setOwnershipHistory(history);
-    } catch (err) {
-      console.error("Error fetching ownership history:", err);
+  // --------------------------------------------------
+  // LOAD WHEN ID CHANGES
+  // --------------------------------------------------
+  useEffect(() => {
+    if (batchId) {
+      fetchBatch(batchId);
     }
-  };
+  }, [batchId]);
 
-  // -----------------------------
-  // Handle Transfer
-  // -----------------------------
+  // --------------------------------------------------
+  // HANDLE TRANSFER + UPDATE STATE
+  // --------------------------------------------------
   const handleTransfer = async () => {
-    if (!batchId || !newOwner) {
-      alert("Enter Batch ID and New Owner Address");
+    if (!batchId || !newOwner || !selectedRole) {
+      alert("Fill all fields");
       return;
     }
 
     try {
       setLoading(true);
 
-      const tx = await transferOwnership(batchId, newOwner);
+      const nextState = roleToState[selectedRole];
 
-      alert("Transfer Successful!\nTx Hash:\n" + tx);
+      // 🚨 Prevent skipping stages
+      if (nextState !== batchData.state + 1) {
+        alert("You must move to the next stage sequentially.");
+        setLoading(false);
+        return;
+      }
 
-      await fetchBatch(batchId);
-      await fetchOwnershipHistory(batchId);
+      // 1️⃣ Transfer ownership
+      const tx1 = await transferOwnership(batchId, newOwner);
+      console.log("Ownership Tx:", tx1);
+
+      // 2️⃣ Update stage
+      const tx2 = await updateState(batchId, nextState);
+      console.log("State Tx:", tx2);
+
+      alert("Ownership transferred & stage updated!");
 
       setNewOwner("");
+      setSelectedRole("");
+
+      await fetchBatch(batchId);
+
       setLoading(false);
 
     } catch (err) {
       console.error(err);
-      alert("Transfer Failed");
+      alert("Transfer failed");
       setLoading(false);
-    }
-  };
-
-  // -----------------------------
-  // Fetch When Batch Changes
-  // -----------------------------
-  useEffect(() => {
-    if (batchId && contract) {
-      fetchBatch(batchId);
-      fetchOwnershipHistory(batchId);
-    }
-  }, [batchId, contract]);
-
-  // -----------------------------
-  // Convert State Enum
-  // -----------------------------
-  const getStateLabel = (state) => {
-    switch (state) {
-      case 0:
-        return "Created (Farmer)";
-      case 1:
-        return "Processed";
-      case 2:
-        return "Distributed";
-      case 3:
-        return "Retail";
-      default:
-        return "Unknown";
     }
   };
 
   return (
     <div style={{ padding: "30px" }}>
-      <h2>🚚 Spinach Supply Chain</h2>
+      <h2>🚚 Spinach Supply Chain Lifecycle</h2>
 
-      {/* Connect Wallet */}
       {!account ? (
         <button onClick={connectWallet}>
           Connect Wallet
         </button>
       ) : (
         <p>
-          Connected: {account.slice(0, 6)}...
+          Connected: {account.slice(0,6)}...
           {account.slice(-4)}
         </p>
       )}
@@ -137,55 +129,48 @@ const SupplyChain = () => {
       <hr />
 
       {/* Batch Input */}
-      <div style={{ marginTop: "20px" }}>
-        <input
-          type="text"
-          placeholder="Enter Batch ID"
-          value={batchId}
-          onChange={(e) => setBatchId(e.target.value)}
-          style={{ padding: "10px", width: "300px" }}
-        />
-      </div>
+      <input
+        type="text"
+        placeholder="Enter Batch ID"
+        value={batchId}
+        onChange={(e) => setBatchId(e.target.value)}
+        style={{ padding: "10px", width: "300px" }}
+      />
 
       {/* Batch Details */}
       {batchData && (
         <div style={{ marginTop: "20px" }}>
           <h3>📦 Batch Details</h3>
+
           <p><strong>Batch ID:</strong> {batchData.batchId}</p>
-          <p><strong>Current Owner:</strong> {batchData.owner}</p>
-          <p><strong>Stage:</strong> {getStateLabel(batchData.state)}</p>
+          <p><strong>Farmer:</strong> {batchData.farmer}</p>
+          <p><strong>Current Owner:</strong> {batchData.currentOwner}</p>
+          <p><strong>Stage:</strong> {stateLabels[batchData.state]}</p>
+          <p><strong>Cold Chain Violation:</strong> {batchData.coldChainViolated ? "YES ⚠️" : "No"}</p>
           <p><strong>IPFS CID:</strong> {batchData.ipfsCID}</p>
           <p><strong>Merkle Root:</strong> {batchData.merkleRoot}</p>
         </div>
       )}
 
-      {/* Ownership History */}
-      {ownershipHistory.length > 0 && (
-        <div style={{ marginTop: "20px" }}>
-          <h3>🔄 Ownership History</h3>
-          {ownershipHistory.map((item, index) => (
-            <div
-              key={index}
-              style={{
-                background: "#f2f2f2",
-                padding: "10px",
-                marginBottom: "10px"
-              }}
-            >
-              <p><strong>Stage:</strong> {getStateLabel(item.state)}</p>
-              <p><strong>From:</strong> {item.from}</p>
-              <p><strong>To:</strong> {item.to}</p>
-            </div>
-          ))}
-        </div>
-      )}
-
       <hr />
 
-      {/* Transfer Ownership */}
-      {account && (
+      {/* Transfer Section */}
+      {account && batchData && (
         <div style={{ marginTop: "20px" }}>
-          <h3>🔁 Transfer Ownership</h3>
+          <h3>🔁 Transfer to Next Stage</h3>
+
+          <select
+            value={selectedRole}
+            onChange={(e) => setSelectedRole(e.target.value)}
+            style={{ padding: "10px", width: "250px" }}
+          >
+            <option value="">Select Next Role</option>
+            <option value="Transporter">Transporter</option>
+            <option value="ColdStorage">Cold Storage</option>
+            <option value="Retailer">Retailer</option>
+          </select>
+
+          <br /><br />
 
           <input
             type="text"
@@ -207,8 +192,35 @@ const SupplyChain = () => {
               border: "none"
             }}
           >
-            {loading ? "Transferring..." : "Transfer Batch"}
+            {loading ? "Processing..." : "Transfer & Update Stage"}
           </button>
+        </div>
+      )}
+
+      {/* Timeline */}
+      {batchData && (
+        <div style={{ marginTop: "40px" }}>
+          <h3>📊 Supply Chain Timeline</h3>
+
+          {stateLabels.map((label, index) => (
+            <div
+              key={index}
+              style={{
+                padding: "10px",
+                background:
+                  index <= batchData.state
+                    ? "#d4edda"
+                    : "#f2f2f2",
+                marginBottom: "5px",
+                fontWeight:
+                  index === batchData.state
+                    ? "bold"
+                    : "normal"
+              }}
+            >
+              {label}
+            </div>
+          ))}
         </div>
       )}
     </div>
