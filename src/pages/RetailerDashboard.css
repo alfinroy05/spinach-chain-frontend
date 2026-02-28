@@ -1,0 +1,61 @@
+.retailer-container {
+  padding: 30px;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.retailer-container h2 {
+  color: #6a1b9a;
+  margin-bottom: 25px;
+}
+
+.retailer-card {
+  display: flex;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 25px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+}
+
+.retailer-image img {
+  width: 250px;
+  height: 100%;
+  object-fit: cover;
+}
+
+.retailer-info {
+  padding: 20px;
+  flex: 1;
+}
+
+.ai-section {
+  background-color: #f3e5f5;
+  padding: 10px;
+  border-radius: 6px;
+  margin-top: 10px;
+  margin-bottom: 15px;
+}
+
+.retailer-actions button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+.approve {
+  background-color: #2e7d32;
+  color: white;
+}
+
+.reject {
+  background-color: #c62828;
+  color: white;
+}
+
+.retailer-actions button:hover {
+  opacity: 0.9;
+}

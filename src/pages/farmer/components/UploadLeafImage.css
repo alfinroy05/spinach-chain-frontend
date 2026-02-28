@@ -1,0 +1,44 @@
+.leaf-container {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  margin-bottom: 20px;
+}
+
+.preview-section {
+  margin-top: 15px;
+}
+
+.preview-section img {
+  max-width: 250px;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+button {
+  margin-top: 15px;
+  padding: 8px 16px;
+  background-color: #2e7d32;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:disabled {
+  background-color: #9e9e9e;
+  cursor: not-allowed;
+}
+
+.error-text {
+  color: red;
+  margin-top: 10px;
+}
+
+.result-box {
+  margin-top: 15px;
+  background: #f1f8e9;
+  padding: 10px;
+  border-radius: 6px;
+}

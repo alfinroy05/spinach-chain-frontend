@@ -1,11 +1,10 @@
 import React, { useState } from "react";
-import Button from "../components/ui/Button";
 import AlertBox from "../components/ui/AlertBox";
 import useBlockchain from "../hooks/useBlockchain";
 import "./Verification.css";
 
 const Verification = () => {
-  const { connectWallet, account, contract } = useBlockchain();
+  const { getBatch } = useBlockchain(); // 🔥 Read-only function
 
   const [batchId, setBatchId] = useState("");
   const [batchData, setBatchData] = useState(null);
@@ -17,16 +16,6 @@ const Verification = () => {
       setError("");
       setBatchData(null);
 
-      if (!account) {
-        setError("Please connect wallet first");
-        return;
-      }
-
-      if (!contract) {
-        setError("Blockchain not initialized");
-        return;
-      }
-
       if (!batchId.trim()) {
         setError("Enter Batch ID");
         return;
@@ -34,64 +23,47 @@ const Verification = () => {
 
       setLoading(true);
 
-      console.log("Verifying:", batchId);
-
-      // 🔥 Read from blockchain
-      const batch = await contract.getBatch(batchId);
+      // 🔹 1️⃣ Read from blockchain (NO wallet needed)
+      const batch = await getBatch(batchId);
 
       const ipfsCID = batch[1];
-      const merkleRoot = batch[2];
-      const farmer = batch[3];
-      const currentOwner = batch[4];
       const state = Number(batch[6]);
       const coldViolation = batch[7];
 
-      // 🔥 Fetch IPFS
-      const response = await fetch(`https://gateway.pinata.cloud/ipfs/${ipfsCID}`);
+      // 🔹 2️⃣ Fetch IPFS data
+      const response = await fetch(
+        `https://gateway.pinata.cloud/ipfs/${ipfsCID}`
+      );
+
       const ipfsData = await response.json();
 
       setBatchData({
         batchId,
-        farmer,
-        currentOwner,
         state,
         coldViolation,
-        ipfsCID,
-        merkleRoot,
         ipfsData
       });
 
       setLoading(false);
 
     } catch (err) {
-      console.error("Verification Error:", err);
-      setError("Batch not found on blockchain");
+      console.error(err);
+      setError("Product not found or verification failed");
       setLoading(false);
     }
   };
 
-  const getStateLabel = (state) => {
-    switch (state) {
-      case 0: return "Harvested";
-      case 1: return "In Transit";
-      case 2: return "In Cold Storage";
-      case 3: return "Delivered";
-      case 4: return "Rejected";
-      default: return "Unknown";
-    }
-  };
+  const stateLabels = [
+    "Harvested",
+    "In Transit",
+    "In Cold Storage",
+    "Delivered",
+    "Rejected"
+  ];
 
   return (
     <div className="verify-container">
-      <h1>🔎 Blockchain Product Verification</h1>
-
-      {!account ? (
-        <Button onClick={connectWallet}>
-          Connect Wallet
-        </Button>
-      ) : (
-        <p>Connected: {account.slice(0,6)}...{account.slice(-4)}</p>
-      )}
+      <h1>🌿 Product Authenticity Check</h1>
 
       <div className="verify-box">
         <input
@@ -101,35 +73,45 @@ const Verification = () => {
           onChange={(e) => setBatchId(e.target.value)}
         />
 
-        <Button onClick={handleVerify}>
-          {loading ? "Verifying..." : "Verify Batch"}
-        </Button>
+        <button onClick={handleVerify}>
+          {loading ? "Checking..." : "Verify Product"}
+        </button>
       </div>
 
       {error && <AlertBox type="danger" message={error} />}
 
       {batchData && (
-        <div className="verify-result">
-          <h3>🌿 Blockchain Verified Data</h3>
+        <div className="consumer-card">
+
+          <h2>✅ Verified Product</h2>
 
           <p><strong>Batch ID:</strong> {batchData.batchId}</p>
-          <p><strong>Farmer:</strong> {batchData.farmer}</p>
-          <p><strong>Current Owner:</strong> {batchData.currentOwner}</p>
-          <p><strong>Stage:</strong> {getStateLabel(batchData.state)}</p>
-          <p>
-            <strong>Cold Chain Violation:</strong>{" "}
-            {batchData.coldViolation ? "YES ⚠️" : "No"}
-          </p>
-          <p><strong>IPFS CID:</strong> {batchData.ipfsCID}</p>
 
-          <h4>📦 IPFS Data:</h4>
-          <pre>
-            {JSON.stringify(batchData.ipfsData, null, 2)}
-          </pre>
+          <p>
+            <strong>Status:</strong>{" "}
+            {stateLabels[batchData.state]}
+          </p>
+
+          <p>
+            <strong>Cold Chain:</strong>{" "}
+            {batchData.coldViolation
+              ? "⚠️ Temperature Issue Detected"
+              : "Maintained Properly ✅"}
+          </p>
+
+          <hr />
+
+          <h3>🌱 Farm Information</h3>
+          <p><strong>Farm:</strong> {batchData.ipfsData.farmer}</p>
+
+          <h3>📊 Quality Metrics</h3>
+          <p><strong>Health Score:</strong> {batchData.ipfsData.health_score || "N/A"}%</p>
+          <p><strong>Disease Risk:</strong> {batchData.ipfsData.disease_probability || "N/A"}%</p>
+          <p><strong>Predicted Yield:</strong> {batchData.ipfsData.predicted_yield || "N/A"} kg</p>
 
           <AlertBox
             type="success"
-            message="Verified successfully on blockchain."
+            message="This product is verified and recorded on blockchain."
           />
         </div>
       )}

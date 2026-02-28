@@ -7,38 +7,71 @@ const SEPOLIA_CHAIN_ID = "0xaa36a7";
 const useBlockchain = () => {
   const [account, setAccount] = useState(null);
   const [contract, setContract] = useState(null);
+  const [readContract, setReadContract] = useState(null);
+  const [provider, setProvider] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
 
-  // --------------------------------------------------
-  // 🔹 Initialize If Already Connected
-  // --------------------------------------------------
-  const initializeWallet = async () => {
-    if (!window.ethereum) return;
+  // ==================================================
+  // 🔹 Initialize Blockchain (Auto on Load)
+  // ==================================================
+  useEffect(() => {
+    const initialize = async () => {
+      if (!window.ethereum) return;
 
-    const provider = new ethers.BrowserProvider(window.ethereum);
+      try {
+        const newProvider = new ethers.BrowserProvider(window.ethereum);
+        setProvider(newProvider);
 
-    const accounts = await provider.send("eth_accounts", []);
+        // Read-only contract (no signer needed)
+        const readOnly = new ethers.Contract(
+          contractAddress,
+          contractABI,
+          newProvider
+        );
+        setReadContract(readOnly);
 
-    if (accounts.length > 0) {
-      const signer = await provider.getSigner();
+        // Check if wallet already connected
+        const accounts = await newProvider.send("eth_accounts", []);
 
-      const contractInstance = new ethers.Contract(
-        contractAddress,
-        contractABI,
-        signer
-      );
+        if (accounts.length > 0) {
+          const signer = await newProvider.getSigner();
+          const signerAddress = await signer.getAddress();
 
-      setAccount(accounts[0]);
-      setContract(contractInstance);
+          const signerContract = new ethers.Contract(
+            contractAddress,
+            contractABI,
+            signer
+          );
+
+          setAccount(signerAddress);
+          setContract(signerContract);
+        }
+      } catch (err) {
+        console.error("Initialization Error:", err);
+      }
+    };
+
+    initialize();
+
+    // 🔥 Force reload when account changes
+    if (window.ethereum) {
+      window.ethereum.on("accountsChanged", () => {
+        window.location.reload();
+      });
+
+      window.ethereum.on("chainChanged", () => {
+        window.location.reload();
+      });
     }
-  };
 
-  // --------------------------------------------------
+  }, [contractAddress]);
+
+  // ==================================================
   // 🔹 Connect Wallet
-  // --------------------------------------------------
+  // ==================================================
   const connectWallet = async () => {
     try {
       if (!window.ethereum) {
@@ -51,36 +84,34 @@ const useBlockchain = () => {
         params: [{ chainId: SEPOLIA_CHAIN_ID }],
       });
 
-      const provider = new ethers.BrowserProvider(window.ethereum);
+      const newProvider = new ethers.BrowserProvider(window.ethereum);
+      setProvider(newProvider);
 
-      const accounts = await provider.send("eth_requestAccounts", []);
+      const accounts = await newProvider.send("eth_requestAccounts", []);
+      const signer = await newProvider.getSigner();
+      const signerAddress = await signer.getAddress();
 
-      const signer = await provider.getSigner();
-
-      const contractInstance = new ethers.Contract(
+      const signerContract = new ethers.Contract(
         contractAddress,
         contractABI,
         signer
       );
 
-      setAccount(accounts[0]);
-      setContract(contractInstance);
+      setAccount(signerAddress);
+      setContract(signerContract);
       setError("");
 
     } catch (err) {
-      console.error(err);
+      console.error("Wallet Connect Error:", err);
       setError(err.message || "Wallet connection failed");
     }
   };
 
-  // --------------------------------------------------
+  // ==================================================
   // 🔹 Create Batch
-  // --------------------------------------------------
+  // ==================================================
   const createBatch = async (batchId, ipfsCID, merkleRoot) => {
-    if (!contract) {
-      setError("Connect wallet first");
-      return;
-    }
+    if (!contract) throw new Error("Connect wallet first");
 
     try {
       setLoading(true);
@@ -91,69 +122,113 @@ const useBlockchain = () => {
         merkleRoot
       );
 
-      const receipt = await tx.wait();
-
+      await tx.wait();
       setLoading(false);
 
-      return receipt.hash;
+      return tx.hash;
 
     } catch (err) {
-      console.error(err);
       setLoading(false);
       setError(err.reason || err.message || "Transaction failed");
       throw err;
     }
   };
 
+  // ==================================================
+  // 🔹 Transfer Ownership
+  // ==================================================
   const transferOwnership = async (batchId, newOwner) => {
-  if (!contract) throw new Error("Connect wallet first");
+    if (!contract) throw new Error("Connect wallet first");
 
-  setLoading(true);
+    try {
+      setLoading(true);
 
-  try {
-    const tx = await contract.transferOwnership(
-      batchId,
-      newOwner
-    );
+      const tx = await contract.transferOwnership(
+        batchId,
+        newOwner
+      );
 
-    await tx.wait();
-    setLoading(false);
+      await tx.wait();
+      setLoading(false);
 
-    return tx.hash;
+      return tx.hash;
 
-  } catch (err) {
-    setLoading(false);
-    throw err;
-  }
-};
-
-  // --------------------------------------------------
-  // 🔹 Auto Detect Changes
-  // --------------------------------------------------
-  useEffect(() => {
-    initializeWallet();
-
-    if (window.ethereum) {
-      window.ethereum.on("accountsChanged", () => {
-        initializeWallet();
-      });
-
-      window.ethereum.on("chainChanged", () => {
-        window.location.reload();
-      });
+    } catch (err) {
+      setLoading(false);
+      throw err;
     }
-  }, []);
+  };
 
-  // --------------------------------------------------
-return {
-  account,
-  contract,
-  loading,
-  error,
-  connectWallet,
-  createBatch,
-  transferOwnership
-};
+  // ==================================================
+  // 🔹 Update State
+  // ==================================================
+  const updateState = async (batchId, stateIndex) => {
+    if (!contract) throw new Error("Connect wallet first");
+
+    try {
+      setLoading(true);
+
+      const tx = await contract.updateState(
+        batchId,
+        stateIndex
+      );
+
+      await tx.wait();
+      setLoading(false);
+
+      return tx.hash;
+
+    } catch (err) {
+      setLoading(false);
+      throw err;
+    }
+  };
+
+  // ==================================================
+  // 🔹 Read Batch (No Wallet Required)
+  // ==================================================
+  const getBatch = async (batchId) => {
+    if (!readContract) throw new Error("Blockchain not initialized");
+
+    return await readContract.getBatch(batchId);
+  };
+
+  // ==================================================
+  // 🔹 Event Listeners
+  // ==================================================
+  const listenToEvents = (callback) => {
+    if (!readContract) return;
+
+    readContract.on("OwnershipTransferred", (batchId, newOwner) => {
+      callback({
+        type: "OwnershipTransferred",
+        batchId,
+        newOwner
+      });
+    });
+
+    readContract.on("StateUpdated", (batchId, newState) => {
+      callback({
+        type: "StateUpdated",
+        batchId,
+        newState: Number(newState)
+      });
+    });
+  };
+
+  // ==================================================
+  return {
+    account,
+    contract,
+    loading,
+    error,
+    connectWallet,
+    createBatch,
+    transferOwnership,
+    updateState,
+    getBatch,
+    listenToEvents
+  };
 };
 
 export default useBlockchain;

@@ -1,0 +1,31 @@
+.detail-container {
+  padding: 30px;
+  background-color: #f4f8f4;
+  min-height: 100vh;
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.sensor-row {
+  padding: 5px 0;
+}
+
+button {
+  margin-top: 10px;
+  padding: 8px 15px;
+  border-radius: 6px;
+  border: none;
+  background-color: #2e7d32;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  opacity: 0.9;
+}

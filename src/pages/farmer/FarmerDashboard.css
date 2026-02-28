@@ -1,0 +1,56 @@
+.farmer-container {
+  padding: 30px;
+  background-color: #f5f9f6;
+  min-height: 100vh;
+}
+
+.create-section {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.batch-card {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.status-badge {
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.status-badge.Harvested {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.status-badge.Delivered {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-badge.Rejected {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+button {
+  margin-top: 10px;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 6px;
+  background-color: #2e7d32;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  opacity: 0.9;
+}

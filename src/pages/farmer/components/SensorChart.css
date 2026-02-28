@@ -1,0 +1,18 @@
+.sensor-card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.latest-values {
+  display: flex;
+  gap: 30px;
+  font-weight: 500;
+  margin-bottom: 15px;
+}
+
+h4 {
+  margin-top: 20px;
+}
