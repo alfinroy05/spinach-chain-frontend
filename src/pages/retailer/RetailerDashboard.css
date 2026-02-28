@@ -1,0 +1,40 @@
+.retailer-container {
+  padding: 30px;
+  background-color: #f4f8f4;
+  min-height: 100vh;
+}
+
+.retailer-card {
+  background: white;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+.quality-badge {
+  margin: 10px 0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: bold;
+  width: fit-content;
+}
+
+.quality-good {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.quality-medium {
+  background-color: #fff3e0;
+  color: #ef6c00;
+}
+
+.quality-bad {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.error {
+  color: red;
+}

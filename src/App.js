@@ -13,12 +13,15 @@ import Footer from "./components/layout/Footer";
 
 /* Pages */
 import Login from "./pages/Login";
-import Register from "./pages/Register";   // ✅ ADDED
-import FarmerDashboard from "./pages/FarmerDashboard";
-import TransporterDashboard from "./pages/TransporterDashboard";
-import RetailerDashboard from "./pages/RetailerDashboard";
-import ColdChainMonitor from "./pages/ColdChainMonitor";
-import Verification from "./pages/Verification";
+import Register from "./pages/Register";
+
+import FarmerDashboard from "./pages/farmer/FarmerDashboard";
+import FarmerBatchDetail from "./pages/farmer/FarmerBatchDetail";
+
+import TransporterDashboard from "./pages/transporter/TransporterDashboard";
+import RetailerDashboard from "./pages/retailer/RetailerDashboard";
+import ColdStorageDashboard from "./pages/coldstorage/ColdStorageDashboard";
+import VerifyBatch from "./pages/public/VerifyBatch";
 import NotFound from "./pages/NotFound";
 
 /* Auth */
@@ -30,9 +33,7 @@ function AppLayout({ children }) {
       <Sidebar />
       <div className="main-content">
         <Navbar />
-        <div className="page-wrapper">
-          {children}
-        </div>
+        <div className="page-wrapper">{children}</div>
         <Footer />
       </div>
     </div>
@@ -47,14 +48,14 @@ function App() {
         {/* 🔄 Redirect root to login */}
         <Route path="/" element={<Navigate to="/login" />} />
 
-        {/* 🔓 Public Consumer Route */}
-        <Route path="/verify/:batchId" element={<Verification />} />
+        {/* 🌿 Public Consumer Verification */}
+        <Route path="/verify/:batchId" element={<VerifyBatch />} />
 
-        {/* 🔐 Auth Routes */}
+        {/* 🔐 Auth */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* 🔐 Farmer Dashboard */}
+        {/* ================= FARMER ================= */}
         <Route
           path="/farmer"
           element={
@@ -66,7 +67,18 @@ function App() {
           }
         />
 
-        {/* 🔐 Transporter Dashboard */}
+        <Route
+          path="/farmer/batch/:id"
+          element={
+            <ProtectedRoute allowedRole="farmer">
+              <AppLayout>
+                <FarmerBatchDetail />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ================= TRANSPORTER ================= */}
         <Route
           path="/transporter"
           element={
@@ -78,7 +90,7 @@ function App() {
           }
         />
 
-        {/* 🔐 Retailer Dashboard */}
+        {/* ================= RETAILER ================= */}
         <Route
           path="/retailer"
           element={
@@ -90,19 +102,19 @@ function App() {
           }
         />
 
-        {/* 🔐 Cold Storage Dashboard */}
+        {/* ================= COLD STORAGE ================= */}
         <Route
           path="/cold-storage"
           element={
             <ProtectedRoute allowedRole="cold_storage">
               <AppLayout>
-                <ColdChainMonitor />
+                <ColdStorageDashboard />
               </AppLayout>
             </ProtectedRoute>
           }
         />
 
-        {/* ❌ 404 Page */}
+        {/* ❌ 404 */}
         <Route path="*" element={<NotFound />} />
 
       </Routes>

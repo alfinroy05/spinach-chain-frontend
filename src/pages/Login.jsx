@@ -24,6 +24,21 @@ const Login = () => {
   };
 
   // -----------------------------
+  // Connect MetaMask (Optional but recommended)
+  // -----------------------------
+  const connectWallet = async () => {
+    if (!window.ethereum) {
+      throw new Error("MetaMask not installed");
+    }
+
+    const accounts = await window.ethereum.request({
+      method: "eth_requestAccounts"
+    });
+
+    return accounts[0].toLowerCase();
+  };
+
+  // -----------------------------
   // Handle Login
   // -----------------------------
   const handleSubmit = async (e) => {
@@ -31,16 +46,24 @@ const Login = () => {
     setError("");
     setLoading(true);
 
+    localStorage.clear();
+
     try {
-      const response = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(formData)
-      });
+      // 🔐 Step 1: Backend Login
+      const response = await fetch(
+        "http://localhost:5000/api/auth/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(formData)
+        }
+      );
 
       const data = await response.json();
+
+      console.log("Login response:", data);
 
       if (!response.ok) {
         setError(data.error || "Invalid credentials");
@@ -48,19 +71,42 @@ const Login = () => {
         return;
       }
 
-      // ✅ Save JWT + Role
+      if (!data.access_token) {
+        setError("Authentication failed.");
+        setLoading(false);
+        return;
+      }
+
+      // 🔗 Step 2: Connect MetaMask
+      const wallet = await connectWallet();
+
+      // ✅ Store session
       localStorage.setItem("token", data.access_token);
       localStorage.setItem("role", data.role);
+      localStorage.setItem("wallet", wallet);
+      localStorage.setItem("user_id", data.user_id);
 
-      // ✅ Redirect based on role
-      if (data.role === "farmer") navigate("/farmer");
-      else if (data.role === "transporter") navigate("/transporter");
-      else if (data.role === "retailer") navigate("/retailer");
-      else if (data.role === "cold_storage") navigate("/cold-storage");
-      else navigate("/login");
+      // 🚀 Redirect by role
+      switch (data.role) {
+        case "farmer":
+          navigate("/farmer");
+          break;
+        case "transporter":
+          navigate("/transporter");
+          break;
+        case "retailer":
+          navigate("/retailer");
+          break;
+        case "cold_storage":
+          navigate("/cold-storage");
+          break;
+        default:
+          navigate("/login");
+      }
 
     } catch (err) {
-      setError("Server error. Please try again.");
+      console.error("Login error:", err);
+      setError(err.message || "Server error. Please try again.");
     }
 
     setLoading(false);

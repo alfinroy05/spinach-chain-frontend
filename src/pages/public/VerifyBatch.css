@@ -1,0 +1,154 @@
+/* ===== Background ===== */
+.verify-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* ===== Card ===== */
+.verify-card {
+  background: #ffffff;
+  width: 100%;
+  max-width: 750px;
+  padding: 35px;
+  border-radius: 18px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+  transition: 0.3s ease;
+}
+
+.verify-card:hover {
+  transform: translateY(-3px);
+}
+
+/* ===== Title ===== */
+.title {
+  text-align: center;
+  margin-bottom: 25px;
+  font-weight: 600;
+  color: #1b5e20;
+}
+
+/* ===== Verified Badge ===== */
+.verified-badge {
+  padding: 14px;
+  border-radius: 12px;
+  font-weight: 600;
+  margin-bottom: 25px;
+  text-align: center;
+  font-size: 15px;
+}
+
+.success {
+  background: linear-gradient(90deg, #2e7d32, #43a047);
+  color: white;
+}
+
+.danger {
+  background: linear-gradient(90deg, #c62828, #e53935);
+  color: white;
+}
+
+/* ===== Sections ===== */
+.section {
+  margin-bottom: 28px;
+  text-align: left;
+}
+
+.section h3 {
+  margin-bottom: 10px;
+  color: #2e7d32;
+}
+
+/* ===== AI Section ===== */
+.ai-section {
+  background: #f9fafc;
+  padding: 20px;
+  border-radius: 14px;
+}
+
+/* ===== AI Grid ===== */
+.ai-grid {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 15px;
+}
+
+.ai-card {
+  flex: 1;
+  min-width: 150px;
+  background: white;
+  border-radius: 14px;
+  padding: 18px;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  transition: 0.3s ease;
+}
+
+.ai-card:hover {
+  transform: translateY(-4px);
+}
+
+/* ===== AI Values ===== */
+.ai-value {
+  font-size: 22px;
+  font-weight: bold;
+  color: #2e7d32;
+}
+
+.ai-label {
+  font-size: 13px;
+  margin-top: 6px;
+  color: #555;
+}
+
+/* ===== Health Circle ===== */
+.health-section {
+  margin: 20px 0;
+  text-align: center;
+}
+
+.health-circle {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.good {
+  background: linear-gradient(135deg, #2e7d32, #43a047);
+}
+
+.medium {
+  background: linear-gradient(135deg, #f57c00, #ff9800);
+}
+
+.bad {
+  background: linear-gradient(135deg, #d32f2f, #f44336);
+}
+
+/* ===== Trust Note ===== */
+.trust-note {
+  margin-top: 25px;
+  text-align: center;
+  font-size: 13px;
+  color: #666;
+}
+
+/* ===== Error ===== */
+.error {
+  color: #c62828;
+  font-weight: bold;
+  text-align: center;
+}
