@@ -15,7 +15,7 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="navbar-left">
-        <h2 className="logo">🌿 SpinachChain</h2>
+        <h2 className="logo">🌿 AgriChain</h2>
       </div>
 
       <div className="navbar-center">

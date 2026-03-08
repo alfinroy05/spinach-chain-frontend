@@ -13,7 +13,7 @@ const Sidebar = () => {
 
   return (
     <div className="sidebar">
-      <h2 className="sidebar-title">🌿 SpinachChain</h2>
+      <h2 className="sidebar-title">🌿 AgriChain</h2>
 
       <nav className="sidebar-menu">
 

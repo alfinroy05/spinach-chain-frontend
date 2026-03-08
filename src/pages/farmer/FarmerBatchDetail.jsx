@@ -7,7 +7,7 @@ import "./FarmerBatchDetail.css";
 const CONTRACT_ADDRESS = "0x826849f64E347BAA34a77360074E6569EaF0dDdd";
 const SEPOLIA_CHAIN_ID = "0xaa36a7";
 
-// 🔥 USE YOUR NEW DEPLOYED CONTRACT ABI HERE
+/* ===== ABI (UNCHANGED) ===== */
 const CONTRACT_ABI = [
 	{
 		"inputs": [
@@ -292,235 +292,392 @@ const CONTRACT_ABI = [
 		"stateMutability": "view",
 		"type": "function"
 	}
-];
+]
+
+
 
 const stateMap = [
-  "Harvested",
-  "InTransit",
-  "InColdStorage",
-  "Delivered",
-  "Rejected"
+	"Harvested",
+	"InTransit",
+	"InColdStorage",
+	"Delivered",
+	"Rejected"
 ];
 
 const FarmerBatchDetail = () => {
-  const { id } = useParams();
+	const { id } = useParams();
 
-  const [batch, setBatch] = useState(null);
-  const [blockchainOwner, setBlockchainOwner] = useState(null);
-  const [blockchainState, setBlockchainState] = useState(null);
-  const [existsOnChain, setExistsOnChain] = useState(false);
-  const [sensorData, setSensorData] = useState([]);
-  const [aiResult, setAiResult] = useState(null);
+	const [batch, setBatch] = useState(null);
+	const [sensorData, setSensorData] = useState([]);
+	const [aiResult, setAiResult] = useState(null);
+	const [selectedImage, setSelectedImage] = useState(null);
+	const [loadingAI, setLoadingAI] = useState(false);
 
-  const token = localStorage.getItem("token");
+	const [blockchainOwner, setBlockchainOwner] = useState(null);
+	const [blockchainState, setBlockchainState] = useState(null);
+	const [existsOnChain, setExistsOnChain] = useState(false);
+	const [currentAccount, setCurrentAccount] = useState(null);
 
-  useEffect(() => {
-    initialize();
-  }, []);
+	const token = localStorage.getItem("token");
 
-  const initialize = async () => {
-    await fetchBackendData();
-    await fetchBlockchainData();
-  };
+	useEffect(() => {
+		initialize();
+	}, []);
 
-  // ==============================
-  // FETCH OFF-CHAIN DATA
-  // ==============================
-  const fetchBackendData = async () => {
-    try {
-      const batchRes = await axios.get(
-        `http://localhost:5000/api/batch/${id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setBatch(batchRes.data);
+	const initialize = async () => {
+		await fetchBackendData();
+		await fetchBlockchainData();
+	};
 
-      const sensorRes = await axios.get(
-        `http://localhost:5000/api/sensor-data/${id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setSensorData(sensorRes.data);
+	/* ==============================
+	   BACKEND DATA
+	============================== */
+	const fetchBackendData = async () => {
+		try {
+			const batchRes = await axios.get(
+				`http://localhost:5000/api/batch/${id}`,
+				{ headers: { Authorization: `Bearer ${token}` } }
+			);
+			setBatch(batchRes.data);
 
-      const aiRes = await axios.get(
-        `http://localhost:5000/api/ai/analyze-batch/${id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setAiResult(aiRes.data);
+			const sensorRes = await axios.get(
+				`http://localhost:5000/api/sensor-data/${id}`,
+				{ headers: { Authorization: `Bearer ${token}` } }
+			);
 
-    } catch (err) {
-      console.error("Backend error:", err);
-    }
-  };
+			const readings =
+				sensorRes.data?.sensor_readings || sensorRes.data;
 
-  // ==============================
-  // FETCH BLOCKCHAIN DATA
-  // ==============================
-  const fetchBlockchainData = async () => {
-    if (!window.ethereum) return;
+			setSensorData(Array.isArray(readings) ? readings : []);
+		} catch (err) {
+			console.error("Backend error:", err);
+			setSensorData([]);
+		}
+	};
 
-    try {
-      await window.ethereum.request({ method: "eth_requestAccounts" });
+	/* ==============================
+	   RUN AI
+	============================== */
+	const handleRunAI = async () => {
+		if (!selectedImage) return alert("Upload tomato image");
 
-      const chainId = await window.ethereum.request({
-        method: "eth_chainId"
-      });
+		try {
+			setLoadingAI(true);
 
-      if (chainId !== SEPOLIA_CHAIN_ID) {
-        alert("Switch MetaMask to Sepolia");
-        return;
-      }
+			const formData = new FormData();
+			formData.append("image", selectedImage);
 
-      const web3 = new Web3(window.ethereum);
-      const contract = new web3.eth.Contract(
-        CONTRACT_ABI,
-        CONTRACT_ADDRESS
-      );
+			const response = await axios.post(
+				`http://localhost:5000/api/predict/${id}`,
+				formData,
+				{ headers: { Authorization: `Bearer ${token}` } }
+			);
 
-      const data = await contract.methods.getBatch(id).call();
+			setAiResult(response.data.ai_analysis);
+			alert("✅ AI Prediction Completed");
 
-      setBlockchainOwner(data[4].toLowerCase());
-      setBlockchainState(stateMap[data[6]]);
-      setExistsOnChain(true);
+		} catch (error) {
+			console.error(error);
+			alert("❌ AI prediction failed");
+		} finally {
+			setLoadingAI(false);
+		}
+	};
 
-    } catch (error) {
-      console.log("Batch not on chain yet.");
-      setExistsOnChain(false);
-    }
-  };
+	/* ==============================
+	   BLOCKCHAIN FETCH
+	============================== */
+	const fetchBlockchainData = async () => {
+		if (!window.ethereum) return;
 
-  // ==============================
-  // CREATE BATCH ON BLOCKCHAIN
-  // ==============================
-  const handleCreateOnChain = async () => {
-    if (!window.ethereum) return alert("Install MetaMask");
+		try {
+			const accounts = await window.ethereum.request({
+				method: "eth_requestAccounts"
+			});
 
-    try {
-      const accounts = await window.ethereum.request({
-        method: "eth_requestAccounts"
-      });
+			setCurrentAccount(accounts[0].toLowerCase());
 
-      const web3 = new Web3(window.ethereum);
-      const contract = new web3.eth.Contract(
-        CONTRACT_ABI,
-        CONTRACT_ADDRESS
-      );
+			const chainId = await window.ethereum.request({
+				method: "eth_chainId"
+			});
 
-      await contract.methods
-        .createBatch(
-          id,
-          batch?.ipfs_cid || "",
-          batch?.merkle_root ||
-            "0x0000000000000000000000000000000000000000000000000000000000000000"
-        )
-        .send({ from: accounts[0] });
+			if (chainId !== SEPOLIA_CHAIN_ID) {
+				alert("Switch MetaMask to Sepolia");
+				return;
+			}
 
-      alert("✅ Created on blockchain");
-      fetchBlockchainData();
+			const web3 = new Web3(window.ethereum);
+			const contract = new web3.eth.Contract(
+				CONTRACT_ABI,
+				CONTRACT_ADDRESS
+			);
 
-    } catch (error) {
-      console.error(error);
-      alert("❌ Blockchain creation failed");
-    }
-  };
+			const data = await contract.methods.getBatch(id).call();
 
-  // ==============================
-  // FARMER → TRANSPORTER
-  // ==============================
-  const handleSendToTransporter = async () => {
-    if (!window.ethereum) return alert("Install MetaMask");
+			setBlockchainOwner(data[4].toLowerCase());
+			setBlockchainState(stateMap[data[6]]);
+			setExistsOnChain(true);
 
-    try {
-      const accounts = await window.ethereum.request({
-        method: "eth_requestAccounts"
-      });
+		} catch {
+			setExistsOnChain(false);
+		}
+	};
 
-      const web3 = new Web3(window.ethereum);
-      const contract = new web3.eth.Contract(
-        CONTRACT_ABI,
-        CONTRACT_ADDRESS
-      );
+	/* ==============================
+	   CREATE ON BLOCKCHAIN
+	============================== */
+	const handleCreateOnChain = async () => {
+		try {
+			const accounts = await window.ethereum.request({
+				method: "eth_requestAccounts"
+			});
 
-      await contract.methods
-        .sendToTransporter(id)
-        .send({ from: accounts[0] });
+			const web3 = new Web3(window.ethereum);
+			const contract = new web3.eth.Contract(
+				CONTRACT_ABI,
+				CONTRACT_ADDRESS
+			);
 
-      alert("✅ Sent to Transporter");
-      fetchBlockchainData();
+			// Ensure merkle root is proper bytes32
+			const formattedMerkleRoot = batch?.merkle_root
+				? batch.merkle_root.startsWith("0x")
+					? batch.merkle_root
+					: "0x" + batch.merkle_root
+				: "0x0000000000000000000000000000000000000000000000000000000000000000";
 
-    } catch (error) {
-      console.error(error);
-      alert(error?.message || "❌ Transaction failed");
-    }
-  };
+			await contract.methods
+				.createBatch(
+					id,
+					batch?.ipfs_cid || "",
+					formattedMerkleRoot
+				)
+				.send({ from: accounts[0] });
 
-  if (!batch) return <div className="detail-container">Loading...</div>;
+			alert("✅ Created on Blockchain");
+			fetchBlockchainData();
 
-  return (
-    <div className="detail-container">
-      <h2>🌿 Batch Details - {id}</h2>
+		} catch (err) {
+			console.error(err);
+			alert("❌ Blockchain transaction failed");
+		}
+	};
 
-      {/* OFF-CHAIN */}
-      <div className="card">
-        <h3>📦 Off-Chain (IPFS + AI)</h3>
-        <p><strong>IPFS CID:</strong> {batch.ipfs_cid}</p>
-        <p><strong>Merkle Root:</strong> {batch.merkle_root}</p>
-      </div>
+	/* ==============================
+	   SEND TO TRANSPORTER
+	============================== */
+	const handleSendToTransporter = async () => {
+		try {
+			const accounts = await window.ethereum.request({
+				method: "eth_requestAccounts"
+			});
 
-      {/* BLOCKCHAIN */}
-      <div className="card">
-        <h3>🔗 Blockchain</h3>
+			const web3 = new Web3(window.ethereum);
+			const contract = new web3.eth.Contract(
+				CONTRACT_ABI,
+				CONTRACT_ADDRESS
+			);
 
-        {!existsOnChain ? (
-          <>
-            <p>❌ Not yet created on blockchain</p>
-            <button onClick={handleCreateOnChain}>
-              Create on Blockchain
-            </button>
-          </>
-        ) : (
-          <>
-            <p><strong>Owner:</strong> {blockchainOwner}</p>
-            <p><strong>State:</strong> {blockchainState}</p>
-          </>
-        )}
-      </div>
+			await contract.methods
+				.sendToTransporter(id)
+				.send({ from: accounts[0] });
 
-      {/* FARMER ACTION */}
-      {existsOnChain && blockchainState === "Harvested" && (
-        <div className="card">
-          <h3>🚚 Send to Transporter</h3>
-          <button onClick={handleSendToTransporter}>
-            Send to Transporter
-          </button>
-        </div>
-      )}
+			alert("✅ Sent to Transporter");
+			fetchBlockchainData();
 
-      {/* SENSOR DATA */}
-      <div className="card">
-        <h3>📊 IoT Data</h3>
-        {sensorData.length === 0 ? (
-          <p>No sensor data</p>
-        ) : (
-          sensorData.map((data, index) => (
-            <div key={index}>
-              🌡 {data.temperature}°C |
-              💧 {data.humidity}% |
-              🌱 {data.soil_moisture}%
-            </div>
-          ))
-        )}
-      </div>
+		} catch (err) {
+			console.error(err);
+			alert("❌ Transfer failed");
+		}
+	};
 
-      {/* AI RESULTS */}
-      {aiResult && (
-        <div className="card">
-          <h3>🤖 AI Prediction</h3>
-          <p>Health: {aiResult.health_score}%</p>
-          <p>Disease: {aiResult.disease_probability}%</p>
-          <p>Yield: {aiResult.predicted_yield} kg</p>
-        </div>
-      )}
-    </div>
-  );
+	if (!batch) return <div className="detail-container">Loading...</div>;
+
+	const latest =
+		sensorData.length > 0
+			? sensorData[sensorData.length - 1]
+			: null;
+
+	return (
+		<div className="detail-container">
+			<h2>🌿 Batch Details - {id}</h2>
+
+			{/* OFF-CHAIN */}
+			<div className="card">
+				<h3>📦 Off-Chain</h3>
+				<p><strong>IPFS CID:</strong> {batch.ipfs_cid}</p>
+				<p><strong>Merkle Root:</strong> {batch.merkle_root}</p>
+			</div>
+
+			{/* BLOCKCHAIN */}
+			<div className="card">
+				<h3>🔗 Blockchain Status</h3>
+
+				{!existsOnChain ? (
+					<>
+						<p>❌ Not created on blockchain</p>
+						<button onClick={handleCreateOnChain}>
+							Create on Blockchain
+						</button>
+					</>
+				) : (
+					<>
+						<p><strong>Owner:</strong> {blockchainOwner}</p>
+						<p><strong>State:</strong> {blockchainState}</p>
+					</>
+				)}
+			</div>
+
+			{existsOnChain &&
+				blockchainState === "Harvested" &&
+				blockchainOwner === currentAccount && (
+					<div className="card">
+						<h3>🚚 Transfer</h3>
+						<button onClick={handleSendToTransporter}>
+							Send to Transporter
+						</button>
+					</div>
+				)}
+
+			{/* SENSOR */}
+			<div className="card">
+				<h3>📊 Live IoT Reading</h3>
+
+				{latest ? (
+					<div>
+						🌡 {latest.temperature ?? "N/A"}°C <br />
+						💧 {latest.humidity ?? "N/A"}% <br />
+						🌱 N: {latest.nitrogen ?? "N/A"} <br />
+						🌱 P: {latest.phosphorus ?? "N/A"} <br />
+						🌱 K: {latest.potassium ?? "N/A"}
+					</div>
+				) : (
+					<p>No sensor data</p>
+				)}
+			</div>
+
+			{/* AI */}
+			<div className="card">
+				<h3>📷 Upload Tomato Image</h3>
+
+				<input
+					type="file"
+					accept="image/*"
+					onChange={(e) => setSelectedImage(e.target.files[0])}
+				/>
+
+				<button onClick={handleRunAI} disabled={loadingAI}>
+					{loadingAI ? "Processing..." : "Run AI Prediction"}
+				</button>
+			</div>
+
+			{/* AI RESULTS */}
+			{aiResult && (
+				<div className="card">
+					<h3>🤖 AI Crop Health Report</h3>
+
+					{/* Tomato Grade */}
+					<h4>🍅 Tomato Quality</h4>
+					<p>
+						<strong>Predicted Grade:</strong> {aiResult.disease_class}
+					</p>
+					<p>
+						<strong>Model Confidence:</strong>{" "}
+						{(aiResult.disease_probability * 100).toFixed(2)}%
+					</p>
+
+					{aiResult.disease_class === "Ripe" && (
+						<p style={{ color: "green" }}>
+							✅ Tomatoes are ready for harvesting and selling.
+						</p>
+					)}
+
+					{aiResult.disease_class === "Unripe" && (
+						<p style={{ color: "#FFC107" }}>
+							⏳ Tomatoes need more time before harvesting.
+						</p>
+					)}
+
+					{aiResult.disease_class === "Reject" && (
+						<p style={{ color: "red" }}>
+							❌ Some tomatoes are damaged or poor quality.
+						</p>
+					)}
+
+					<hr />
+
+					{/* Environmental Risk */}
+					<h4>🌱 Environmental Condition</h4>
+					<p>
+						<strong>Environmental Risk:</strong>{" "}
+						{(aiResult.environmental_risk * 100).toFixed(2)}%
+					</p>
+
+					{aiResult.environmental_risk < 0.3 && (
+						<p style={{ color: "green" }}>
+							✅ Environment conditions are safe.
+						</p>
+					)}
+
+					{aiResult.environmental_risk >= 0.3 &&
+						aiResult.environmental_risk < 0.6 && (
+							<p style={{ color: "#FFC107" }}>
+								⚠ Moderate environmental risk. Monitor conditions.
+							</p>
+						)}
+
+					{aiResult.environmental_risk >= 0.6 && (
+						<p style={{ color: "red" }}>
+							❌ High environmental risk. Take action immediately.
+						</p>
+					)}
+
+					<hr />
+
+					{/* Health Score */}
+					<h4>❤️ Overall Crop Health</h4>
+					<p>
+						<strong>Health Score:</strong>{" "}
+						{(aiResult.health_score * 100).toFixed(2)}%
+					</p>
+
+					{aiResult.health_score > 0.75 && (
+						<p style={{ color: "green" }}>
+							🌟 Excellent crop condition.
+						</p>
+					)}
+
+					{aiResult.health_score <= 0.75 &&
+						aiResult.health_score > 0.5 && (
+							<p style={{ color: "#4CAF50" }}>
+								👍 Good condition. Ready for market.
+							</p>
+						)}
+
+					{aiResult.health_score <= 0.5 &&
+						aiResult.health_score > 0.3 && (
+							<p style={{ color: "#FFC107" }}>
+								⚠ Moderate condition. Improve farming practices.
+							</p>
+						)}
+
+					{aiResult.health_score <= 0.3 && (
+						<p style={{ color: "red" }}>
+							❌ Poor condition. Immediate attention required.
+						</p>
+					)}
+
+					<hr />
+
+					{/* Simple Explanation */}
+					<h5>📘 How Health Score is Calculated</h5>
+					<p style={{ fontSize: "0.9rem", color: "#555" }}>
+						Health Score combines image quality analysis (60%) and environmental
+						risk (30%) to evaluate overall crop condition.
+					</p>
+				</div>
+			)}
+		</div>
+	);
 };
 
 export default FarmerBatchDetail;
