@@ -12,6 +12,28 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
+/* -------- Sensor Data Section -------- */
+
+.sensor-summary {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f9fbff;
+  border-radius: 8px;
+  border-left: 4px solid #42a5f5;
+}
+
+/* -------- AI Analysis Section -------- */
+
+.ai-summary {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f4f8f4;
+  border-radius: 8px;
+  border-left: 4px solid #2e7d32;
+}
+
+/* -------- Buttons -------- */
+
 .button-group {
   margin-top: 10px;
   display: flex;

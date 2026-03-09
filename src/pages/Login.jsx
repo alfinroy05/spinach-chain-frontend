@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./Login.css";
+import loginBg from "../assets/LOGIN-IMG.jpeg"; // ✅ ADD THIS LINE
 
 const Login = () => {
   const navigate = useNavigate();
@@ -113,7 +114,15 @@ const Login = () => {
   };
 
   return (
-    <div className="login-container">
+    <div
+      className="login-container"
+      style={{
+        backgroundImage: `url(${loginBg})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat"
+      }}
+    >
       <div className="login-card">
         <h2>🌿 AgriChain Login</h2>
 
