@@ -6,7 +6,7 @@ import "./FarmerDashboard.css";
 
 const CONTRACT_ADDRESS = "0xafCA34abb84f69bc1D4AbC54eC096dF7d5607dE3";
 const SEPOLIA_CHAIN_ID = "0xaa36a7";
-
+const API_BASE = process.env.REACT_APP_API_URL;
 // 🔥 KEEP YOUR FULL ABI HERE
 const CONTRACT_ABI = [
 	{
@@ -269,7 +269,7 @@ const FarmerDashboard = () => {
 	const fetchBatches = async () => {
 		try {
 			const res = await axios.get(
-				"http://localhost:5000/api/batches",
+				`${API_BASE}/batches`,
 				{
 					headers: { Authorization: `Bearer ${token}` }
 				}
@@ -341,7 +341,7 @@ const FarmerDashboard = () => {
 
 		try {
 			await axios.post(
-				"http://localhost:5000/api/create-batch",
+				`${API_BASE}/create-batch`,
 				{ batch_id: newBatchId },
 				{
 					headers: { Authorization: `Bearer ${token}` }

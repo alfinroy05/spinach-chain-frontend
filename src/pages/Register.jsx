@@ -13,6 +13,7 @@ const Register = () => {
     farm_name: "",
     location: ""
   });
+  const API_BASE = process.env.REACT_APP_API_URL;
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -31,7 +32,7 @@ const Register = () => {
     try {
       setLoading(true);
 
-      const response = await fetch("http://localhost:5000/api/auth/register", {
+      const response = await fetch(`${API_BASE}/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

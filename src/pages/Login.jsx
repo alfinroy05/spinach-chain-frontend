@@ -48,11 +48,12 @@ const Login = () => {
     setLoading(true);
 
     localStorage.clear();
+    const API_BASE = process.env.REACT_APP_API_URL;
 
     try {
       // 🔐 Step 1: Backend Login
       const response = await fetch(
-        "http://localhost:5000/api/auth/login",
+        `${API_BASE}/auth/login`,
         {
           method: "POST",
           headers: {

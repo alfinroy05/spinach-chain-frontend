@@ -6,7 +6,8 @@ import "./RetailerDashboard.css";
 import contractABI from "../../contracts/abi.json";
 
 const CONTRACT_ADDRESS = "0x826849f64E347BAA34a77360074E6569EaF0dDdd";
-const API_BASE = "http://localhost:5000/api";
+
+const API_BASE =  process.env.REACT_APP_API_URL;
 const SEPOLIA_CHAIN_ID = 11155111;
 
 const stateMap = [

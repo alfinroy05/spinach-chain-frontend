@@ -6,6 +6,7 @@ const AIResultCard = ({ batchId }) => {
   const [aiData, setAiData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const API_BASE = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     fetchAIResult();
@@ -15,7 +16,7 @@ const AIResultCard = ({ batchId }) => {
     try {
       setLoading(true);
       const res = await axios.get(
-        `http://localhost:5000/api/ai/predict/${batchId}`
+        `${API_BASE}/ai/predict/${batchId}`
       );
 
       setAiData(res.data);

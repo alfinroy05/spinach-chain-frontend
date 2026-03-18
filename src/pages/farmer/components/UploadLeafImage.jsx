@@ -8,6 +8,7 @@ const UploadLeafImage = ({ batchId }) => {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const API_BASE = process.env.REACT_APP_API_URL;
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -37,7 +38,7 @@ const UploadLeafImage = ({ batchId }) => {
       const token = localStorage.getItem("token");
 
       const response = await axios.post(
-        "http://localhost:5000/api/ai/leaf-detect",
+        `${API_BASE}/ai/leaf-detect`,
         formData,
         {
           headers: {

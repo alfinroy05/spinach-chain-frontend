@@ -341,13 +341,13 @@ const FarmerBatchDetail = () => {
 	const fetchBackendData = async () => {
 		try {
 			const batchRes = await axios.get(
-				`http://localhost:5000/api/batch/${id}`,
+				`${API_BASE}/batch/${id}`,
 				{ headers: { Authorization: `Bearer ${token}` } }
 			);
 			setBatch(batchRes.data);
 
 			const sensorRes = await axios.get(
-				`http://localhost:5000/api/sensor-data/${id}`,
+				`${API_BASE}/sensor-data/${id}`,
 				{ headers: { Authorization: `Bearer ${token}` } }
 			);
 
@@ -374,7 +374,7 @@ const FarmerBatchDetail = () => {
 			formData.append("image", selectedImage);
 
 			const response = await axios.post(
-				`http://localhost:5000/api/predict/${id}`,
+				`${API_BASE}/predict/${id}`,
 				formData,
 				{ headers: { Authorization: `Bearer ${token}` } }
 			);

@@ -15,6 +15,7 @@ import "./SensorChart.css";
 const SensorChart = ({ batchId }) => {
   const [sensorData, setSensorData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const API_BASE = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     fetchSensorData();
@@ -29,7 +30,7 @@ const SensorChart = ({ batchId }) => {
   const fetchSensorData = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:5000/api/sensor-data/${batchId}`
+        `${API_BASE}/sensor-data/${batchId}`
       );
       setSensorData(res.data);
       setLoading(false);
