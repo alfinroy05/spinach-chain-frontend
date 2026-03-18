@@ -321,7 +321,13 @@ const FarmerBatchDetail = () => {
 	const token = localStorage.getItem("token");
 
 	useEffect(() => {
-		initialize();
+		initialize(); // first load
+
+		const interval = setInterval(() => {
+			fetchBackendData();   // 🔥 this is the key line
+		}, 10000); // every 10 seconds
+
+		return () => clearInterval(interval);
 	}, []);
 
 	const initialize = async () => {
@@ -616,7 +622,7 @@ const FarmerBatchDetail = () => {
 				<div className="upload-options">
 
 					{/* Upload Image */}
-					
+
 
 					{/* Take Photo */}
 					<label className="upload-btn camera">
