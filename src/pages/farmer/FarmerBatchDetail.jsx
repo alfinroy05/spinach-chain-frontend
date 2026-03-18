@@ -321,7 +321,13 @@ const FarmerBatchDetail = () => {
 	const token = localStorage.getItem("token");
 
 	useEffect(() => {
-		initialize();
+		initialize(); // first load
+
+		const interval = setInterval(() => {
+			fetchBackendData();   // 🔥 this is the key line
+		}, 10000); // every 10 seconds
+
+		return () => clearInterval(interval);
 	}, []);
 
 	const initialize = async () => {
@@ -538,38 +544,126 @@ const FarmerBatchDetail = () => {
 					</div>
 				)}
 
-			{/* SENSOR */}
-			<div className="card">
-				<h3>📊 Live IoT Reading</h3>
+			{/* SENSOR CARD */}
+			<div className="card sensor-card">
+				<div className="sensor-header">
+					<h3>🌿 Live Farm Sensor Data</h3>
+					<span className="live-indicator">🟢 Live</span>
+				</div>
 
 				{latest ? (
-					<div>
-						🌡 {latest.temperature ?? "N/A"}°C <br />
-						💧 {latest.humidity ?? "N/A"}% <br />
-						🌱 N: {latest.nitrogen ?? "N/A"} <br />
-						🌱 P: {latest.phosphorus ?? "N/A"} <br />
-						🌱 K: {latest.potassium ?? "N/A"}
+					<div className="sensor-grid">
+
+						{/* Temperature */}
+						<div className="sensor-item">
+							<div className="sensor-icon">🌡</div>
+							<div className="sensor-data">
+								<p className="sensor-label">Temperature</p>
+								<p className="sensor-value">
+									{latest.temperature ?? "N/A"}°C
+								</p>
+							</div>
+						</div>
+
+						{/* Humidity */}
+						<div className="sensor-item">
+							<div className="sensor-icon">💧</div>
+							<div className="sensor-data">
+								<p className="sensor-label">Humidity</p>
+								<p className="sensor-value">
+									{latest.humidity ?? "N/A"}%
+								</p>
+							</div>
+						</div>
+
+						{/* Nitrogen */}
+						<div className="sensor-item">
+							<div className="sensor-icon">🌿</div>
+							<div className="sensor-data">
+								<p className="sensor-label">Nitrogen</p>
+								<p className="sensor-value">
+									{latest.nitrogen ?? "N/A"}
+								</p>
+							</div>
+						</div>
+
+						{/* Phosphorus */}
+						<div className="sensor-item">
+							<div className="sensor-icon">🧪</div>
+							<div className="sensor-data">
+								<p className="sensor-label">Phosphorus</p>
+								<p className="sensor-value">
+									{latest.phosphorus ?? "N/A"}
+								</p>
+							</div>
+						</div>
+
+						{/* Potassium */}
+						<div className="sensor-item">
+							<div className="sensor-icon">🌾</div>
+							<div className="sensor-data">
+								<p className="sensor-label">Potassium</p>
+								<p className="sensor-value">
+									{latest.potassium ?? "N/A"}
+								</p>
+							</div>
+						</div>
+
 					</div>
 				) : (
-					<p>No sensor data</p>
+					<p className="no-data">No sensor data available</p>
 				)}
 			</div>
 
-			{/* AI */}
+			{/* AI IMAGE INPUT */}
 			<div className="card">
-				<h3>📷 Upload Tomato Image</h3>
+				<h3>📷 Tomato Leaf Analysis</h3>
 
-				<input
-					type="file"
-					accept="image/*"
-					onChange={(e) => setSelectedImage(e.target.files[0])}
-				/>
+				<div className="upload-options">
 
-				<button onClick={handleRunAI} disabled={loadingAI}>
+					{/* Upload Image */}
+
+
+					{/* Take Photo */}
+					<label className="upload-btn camera">
+						📸 Take Photo
+						<input
+							type="file"
+							accept="image/*"
+							capture="environment"
+							onChange={(e) => {
+								const file = e.target.files[0];
+								if (file) setSelectedImage(file);
+							}}
+							hidden
+						/>
+					</label>
+
+				</div>
+
+				{/* Image Preview */}
+				{selectedImage && (
+					<div style={{ marginTop: "12px" }}>
+						<p style={{ fontSize: "0.9rem", marginBottom: "6px" }}>
+							Selected: {selectedImage.name}
+						</p>
+
+						<img
+							src={URL.createObjectURL(selectedImage)}
+							alt="leaf preview"
+							className="image-preview"
+						/>
+					</div>
+				)}
+
+				{/* Run AI Button */}
+				<button
+					onClick={handleRunAI}
+					disabled={loadingAI || !selectedImage}
+				>
 					{loadingAI ? "Processing..." : "Run AI Prediction"}
 				</button>
 			</div>
-
 			{/* AI RESULTS */}
 			{aiResult && (
 				<div className="card">

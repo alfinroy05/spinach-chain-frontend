@@ -101,10 +101,45 @@ const ColdStorageDashboard = () => {
             owner === currentWallet &&
             state === "InColdStorage"
           ) {
+
+            let sensor = null;
+
+            try {
+              const sensorRes = await axios.get(
+                `${API_BASE}/sensor-data/${batch.batch_id}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+
+              const readings =
+                sensorRes.data?.sensor_readings || [];
+
+              if (readings.length > 0) {
+                sensor = readings[readings.length - 1];
+              }
+
+            } catch {}
+
             coldStorageOwned.push({
               batch_id: batch.batch_id,
               state,
-              cold_chain_violated: violated
+              cold_chain_violated: violated,
+
+              // timestamps
+              harvestTime: batch.harvest_timestamp,
+              createdAt: batch.created_at,
+
+              // IPFS
+              ipfs: batch.ipfs_cid,
+
+              // AI results
+              healthScore: batch.health_score,
+              diseaseRisk: batch.disease_probability,
+              envRisk: batch.environmental_risk,
+              diseaseClass: batch.disease_class,
+              anomaly: batch.anomaly_detected,
+
+              // sensor
+              sensor
             });
           }
 
@@ -183,46 +218,150 @@ const ColdStorageDashboard = () => {
       {batches.length === 0 ? (
         <p>No batches assigned to this cold storage wallet.</p>
       ) : (
-        batches.map((batch) => (
-          <div key={batch.batch_id} className="cold-card">
+        batches.map((batch) => {
 
-            <p><strong>Batch ID:</strong> {batch.batch_id}</p>
-            <p><strong>State:</strong> {batch.state}</p>
+          const harvestAge =
+            batch.harvestTime
+              ? Math.floor(
+                  (Date.now() - new Date(batch.harvestTime)) /
+                  (1000 * 60 * 60)
+                )
+              : null;
 
-            <p>
-              <strong>Cold Chain:</strong>{" "}
-              {batch.cold_chain_violated
-                ? "⚠ Violation"
-                : "✅ Safe"}
-            </p>
+          return (
+            <div key={batch.batch_id} className="cold-card">
 
-            <div className="button-group">
+              <p><strong>Batch ID:</strong> {batch.batch_id}</p>
+              <p><strong>State:</strong> {batch.state}</p>
 
-              <button
-                disabled={actionLoading === batch.batch_id}
-                onClick={() =>
-                  handleSendToRetailer(batch.batch_id)
-                }
-              >
-                {actionLoading === batch.batch_id
-                  ? "Processing..."
-                  : "Send to Retailer"}
-              </button>
+              <p>
+                <strong>Cold Chain:</strong>{" "}
+                {batch.cold_chain_violated
+                  ? "⚠ Violation"
+                  : "✅ Safe"}
+              </p>
 
-              <button
-                className="danger-btn"
-                disabled={actionLoading === batch.batch_id}
-                onClick={() =>
-                  handleFlagViolation(batch.batch_id)
-                }
-              >
-                Flag Violation
-              </button>
+              <p>
+                <strong>Harvested:</strong>{" "}
+                {batch.harvestTime
+                  ? new Date(batch.harvestTime).toLocaleString()
+                  : "N/A"}
+              </p>
+
+              {harvestAge !== null && (
+                <p><strong>Crop Age:</strong> {harvestAge} hours</p>
+              )}
+
+              <p>
+                <strong>Recorded:</strong>{" "}
+                {batch.createdAt
+                  ? new Date(batch.createdAt).toLocaleString()
+                  : "N/A"}
+              </p>
+
+              {/* SENSOR DATA */}
+              {batch.sensor && (
+                <div className="sensor-summary">
+
+                  <p><strong>Latest Environmental Condition</strong></p>
+
+                  <p>🌡 Temperature: {batch.sensor.temperature} °C</p>
+                  <p>💧 Humidity: {batch.sensor.humidity} %</p>
+                  <p>🌱 Nitrogen: {batch.sensor.nitrogen}</p>
+                  <p>🌱 Phosphorus: {batch.sensor.phosphorus}</p>
+                  <p>🌱 Potassium: {batch.sensor.potassium}</p>
+
+                  <p>
+                    <small>
+                      Sensor Time:{" "}
+                      {new Date(
+                        batch.sensor.created_at
+                      ).toLocaleString()}
+                    </small>
+                  </p>
+
+                </div>
+              )}
+
+              {/* AI ANALYSIS */}
+              {batch.healthScore !== undefined && (
+                <div className="ai-summary">
+
+                  <p><strong>AI Crop Analysis</strong></p>
+
+                  {batch.diseaseClass && (
+                    <p>🍅 Crop Grade: {batch.diseaseClass}</p>
+                  )}
+
+                  {batch.healthScore !== null && (
+                    <p>
+                      ❤️ Health Score: {(batch.healthScore * 100).toFixed(1)}%
+                    </p>
+                  )}
+
+                  {batch.diseaseRisk !== null && (
+                    <p>
+                      ⚠ Disease Risk: {(batch.diseaseRisk * 100).toFixed(1)}%
+                    </p>
+                  )}
+
+                  {batch.envRisk !== null && (
+                    <p>
+                      🌱 Environmental Risk: {(batch.envRisk * 100).toFixed(1)}%
+                    </p>
+                  )}
+
+                  {batch.anomaly && (
+                    <p style={{color:"red"}}>
+                      ⚠ Anomaly detected in crop condition
+                    </p>
+                  )}
+
+                </div>
+              )}
+
+              {/* IPFS */}
+              {batch.ipfs && (
+                <p>
+                  <strong>IPFS Metadata:</strong>{" "}
+                  <a
+                    href={`https://gateway.pinata.cloud/ipfs/${batch.ipfs}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    View Data
+                  </a>
+                </p>
+              )}
+
+              <div className="button-group">
+
+                <button
+                  disabled={actionLoading === batch.batch_id}
+                  onClick={() =>
+                    handleSendToRetailer(batch.batch_id)
+                  }
+                >
+                  {actionLoading === batch.batch_id
+                    ? "Processing..."
+                    : "Send to Retailer"}
+                </button>
+
+                <button
+                  className="danger-btn"
+                  disabled={actionLoading === batch.batch_id}
+                  onClick={() =>
+                    handleFlagViolation(batch.batch_id)
+                  }
+                >
+                  Flag Violation
+                </button>
+
+              </div>
 
             </div>
-
-          </div>
-        ))
+          );
+        })
       )}
     </div>
   );

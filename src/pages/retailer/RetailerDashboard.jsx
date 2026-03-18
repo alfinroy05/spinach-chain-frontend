@@ -183,17 +183,17 @@ const RetailerDashboard = () => {
                         <p><strong>Farm:</strong> {batch.farm_name || "N/A"}</p>
 
                         <div className={`quality-badge ${getQualityBadge(batch.health_score)}`}>
-                            🌿 Health Score: {batch.health_score || 0}%
+                            🌿 Health Score: {((batch.health_score ?? 0) * 100).toFixed(2)}%
                         </div>
 
                         <p>
                             🦠 <strong>Disease Risk:</strong>{" "}
-                            {batch.disease_probability || 0}%
+                            {((batch.disease_probability ?? 0) * 100).toFixed(2)}%
                         </p>
 
                         <p>
                             📦 <strong>Predicted Yield:</strong>{" "}
-                            {batch.predicted_yield || 0} kg
+                            {(batch.predicted_yield ?? 0).toFixed(2)} kg
                         </p>
 
                         {/* ================== QR SECTION ================== */}

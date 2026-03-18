@@ -236,196 +236,213 @@ const CONTRACT_ABI = [
 ];;
 
 const stateMap = [
-  "Harvested",
-  "InTransit",
-  "InColdStorage",
-  "Delivered",
-  "Rejected"
+	"Harvested",
+	"InTransit",
+	"InColdStorage",
+	"Delivered",
+	"Rejected"
 ];
 
 const FarmerDashboard = () => {
-  const [batches, setBatches] = useState([]);
-  const [newBatchId, setNewBatchId] = useState("");
-  const [loading, setLoading] = useState(true);
+	const [batches, setBatches] = useState([]);
+	const [newBatchId, setNewBatchId] = useState("");
+	const [loading, setLoading] = useState(true);
 
-  const navigate = useNavigate();
-  const token = localStorage.getItem("token");
+	const navigate = useNavigate();
+	const token = localStorage.getItem("token");
 
-  // ==================================================
-  // INITIAL LOAD
-  // ==================================================
-  useEffect(() => {
-    if (!token) {
-      navigate("/login");
-      return;
-    }
+	// ==================================================
+	// INITIAL LOAD
+	// ==================================================
+	useEffect(() => {
+		if (!token) {
+			navigate("/login");
+			return;
+		}
 
-    fetchBatches();
-  }, []);
+		fetchBatches();
+	}, []);
 
-  // ==================================================
-  // FETCH ALL BATCHES (OFF-CHAIN ONLY)
-  // ==================================================
-  const fetchBatches = async () => {
-    try {
-      const res = await axios.get(
-        "http://localhost:5000/api/batches",
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+	// ==================================================
+	// FETCH ALL BATCHES (OFF-CHAIN ONLY)
+	// ==================================================
+	const fetchBatches = async () => {
+		try {
+			const res = await axios.get(
+				"http://localhost:5000/api/batches",
+				{
+					headers: { Authorization: `Bearer ${token}` }
+				}
+			);
 
-      const offChainBatches = res.data || [];
+			const offChainBatches = res.data || [];
 
-      // 🔥 Attach blockchain state to each batch
-      const enrichedBatches = await Promise.all(
-        offChainBatches.map(async (batch) => {
-          const chainData = await fetchBlockchainState(batch.batch_id);
-          return { ...batch, ...chainData };
-        })
-      );
+			// 🔥 Attach blockchain state to each batch
+			const enrichedBatches = await Promise.all(
+				offChainBatches.map(async (batch) => {
+					const chainData = await fetchBlockchainState(batch.batch_id);
+					return { ...batch, ...chainData };
+				})
+			);
 
-      setBatches(enrichedBatches);
+			setBatches(enrichedBatches);
 
-    } catch (err) {
-      console.error("Error fetching batches:", err);
+		} catch (err) {
+			console.error("Error fetching batches:", err);
 
-      if (err.response?.status === 401) {
-        alert("Session expired.");
-        localStorage.clear();
-        navigate("/login");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+			if (err.response?.status === 401) {
+				alert("Session expired.");
+				localStorage.clear();
+				navigate("/login");
+			}
+		} finally {
+			setLoading(false);
+		}
+	};
 
-  // ==================================================
-  // FETCH BLOCKCHAIN STATE
-  // ==================================================
-  const fetchBlockchainState = async (batchId) => {
-    if (!window.ethereum) return { chainState: "NotCreated" };
+	// ==================================================
+	// FETCH BLOCKCHAIN STATE
+	// ==================================================
+	const fetchBlockchainState = async (batchId) => {
+		if (!window.ethereum) return { chainState: "NotCreated" };
 
-    try {
-      const web3 = new Web3(window.ethereum);
+		try {
+			const web3 = new Web3(window.ethereum);
 
-      const chainId = await window.ethereum.request({
-        method: "eth_chainId"
-      });
+			const chainId = await window.ethereum.request({
+				method: "eth_chainId"
+			});
 
-      if (chainId !== SEPOLIA_CHAIN_ID)
-        return { chainState: "WrongNetwork" };
+			if (chainId !== SEPOLIA_CHAIN_ID)
+				return { chainState: "WrongNetwork" };
 
-      const contract = new web3.eth.Contract(
-        CONTRACT_ABI,
-        CONTRACT_ADDRESS
-      );
+			const contract = new web3.eth.Contract(
+				CONTRACT_ABI,
+				CONTRACT_ADDRESS
+			);
 
-      const data = await contract.methods.getBatch(batchId).call();
+			const data = await contract.methods.getBatch(batchId).call();
 
-      return {
-        chainState: stateMap[data[6]],
-        chainOwner: data[4]
-      };
+			return {
+				chainState: stateMap[data[6]],
+				chainOwner: data[4]
+			};
 
-    } catch {
-      return { chainState: "NotCreated" };
-    }
-  };
+		} catch {
+			return { chainState: "NotCreated" };
+		}
+	};
 
-  // ==================================================
-  // CREATE NEW BATCH (OFF-CHAIN ONLY)
-  // ==================================================
-  const handleCreateBatch = async () => {
-    if (!newBatchId.trim()) return;
+	// ==================================================
+	// CREATE NEW BATCH (OFF-CHAIN ONLY)
+	// ==================================================
+	const handleCreateBatch = async () => {
+		if (!newBatchId.trim()) return;
 
-    try {
-      await axios.post(
-        "http://localhost:5000/api/create-batch",
-        { batch_id: newBatchId },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+		try {
+			await axios.post(
+				"http://localhost:5000/api/create-batch",
+				{ batch_id: newBatchId },
+				{
+					headers: { Authorization: `Bearer ${token}` }
+				}
+			);
 
-      alert("Batch metadata created!");
-      setNewBatchId("");
-      fetchBatches();
+			alert("Batch metadata created!");
+			setNewBatchId("");
+			fetchBatches();
 
-    } catch (err) {
-      console.error("Create batch error:", err);
-      alert(err.response?.data?.error || "Failed to create batch");
-    }
-  };
+		} catch (err) {
+			console.error("Create batch error:", err);
+			alert(err.response?.data?.error || "Failed to create batch");
+		}
+	};
 
-  if (loading) {
-    return <div className="farmer-container">Loading...</div>;
-  }
+	if (loading) {
+		return <div className="farmer-container">Loading...</div>;
+	}
 
-  return (
-    <div className="farmer-container">
-      <h2>👨‍🌾 Farmer Dashboard</h2>
+	return (
+		<div className="farmer-container">
+			<h2>👨‍🌾 Farmer Dashboard</h2>
 
-      {/* ================= CREATE SECTION ================= */}
-      <div className="create-section">
-        <h3>Create New Batch</h3>
-        <input
-          type="text"
-          placeholder="Enter Batch ID"
-          value={newBatchId}
-          onChange={(e) => setNewBatchId(e.target.value)}
-        />
-        <button onClick={handleCreateBatch}>
-          Create Batch
-        </button>
-      </div>
+			{/* ================= CREATE SECTION ================= */}
+			<div className="create-section">
+				<h3>Create New Batch</h3>
+				<input
+					type="text"
+					placeholder="Enter Batch ID"
+					value={newBatchId}
+					onChange={(e) => setNewBatchId(e.target.value)}
+				/>
+				<button onClick={handleCreateBatch}>
+					Create Batch
+				</button>
+			</div>
 
-      {/* ================= BATCH LIST ================= */}
-      <div className="batch-list">
-        <h3>All Batches</h3>
+			{/* ================= BATCH LIST ================= */}
+			<div className="batch-list">
+				<h3>All Batches</h3>
 
-        {batches.length === 0 ? (
-          <p>No batches created yet.</p>
-        ) : (
-          batches.map((batch) => (
-            <div key={batch.batch_id} className="batch-card">
+				{batches.length === 0 ? (
+					<p>No batches created yet.</p>
+				) : (
+					batches.map((batch) => {
 
-              <p><strong>Batch ID:</strong> {batch.batch_id}</p>
+						const status = batch.chainState || "NotCreated";
+						const owner = batch.chainOwner || null;
+						const cid = batch.ipfs_cid || null;
 
-              <p>
-                <strong>Blockchain Status:</strong>{" "}
-                <span className={`status-badge ${batch.chainState}`}>
-                  {batch.chainState}
-                </span>
-              </p>
+						return (
+							<div key={batch.batch_id} className="batch-card">
 
-              {batch.chainOwner && (
-                <p>
-                  <strong>Owner:</strong>{" "}
-                  {batch.chainOwner.slice(0, 6)}...
-                  {batch.chainOwner.slice(-4)}
-                </p>
-              )}
+								<p>
+									<strong>Batch ID:</strong> {batch.batch_id}
+								</p>
 
-              <p>
-                <strong>IPFS CID:</strong>{" "}
-                {batch.ipfs_cid || "Not Finalized"}
-              </p>
+								<p>
+									<strong>Blockchain Status:</strong>{" "}
+									<span className={`status-badge status-${status}`}>
+										{status}
+									</span>
+								</p>
 
-              <button
-                onClick={() =>
-                  navigate(`/farmer/batch/${batch.batch_id}`)
-                }
-              >
-                View Details
-              </button>
+								<p>
+									<strong>Owner:</strong>{" "}
+									{owner
+										? `${owner.slice(0, 6)}...${owner.slice(-4)}`
+										: "Not Assigned"}
+								</p>
 
-            </div>
-          ))
-        )}
-      </div>
-    </div>
-  );
+								<p>
+									<strong>IPFS CID:</strong>{" "}
+									{cid ? (
+										<span className="ipfs-value">
+											{cid.slice(0, 10)}...{cid.slice(-6)}
+										</span>
+									) : (
+										<span className="ipfs-missing">
+											Not Finalized
+										</span>
+									)}
+								</p>
+
+								<button
+									className="view-btn"
+									onClick={() =>
+										navigate(`/farmer/batch/${batch.batch_id}`)
+									}
+								>
+									View Details
+								</button>
+
+							</div>
+						);
+					})
+				)}
+			</div>
+		</div>
+	);
 };
 
 export default FarmerDashboard;
