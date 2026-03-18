@@ -86,7 +86,9 @@ const TransporterDashboard = () => {
                 return;
             }
 
-            const res = await axios.get(`${API_BASE}/batches`, {
+            
+
+            axios.get(`${API_BASE}/batches`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
@@ -123,7 +125,7 @@ const TransporterDashboard = () => {
                                 sensor = readings[readings.length - 1];
                             }
 
-                        } catch {}
+                        } catch { }
 
                         transporterBatches.push({
                             batchId: batch.batch_id,
@@ -286,7 +288,7 @@ const TransporterDashboard = () => {
                                     )}
 
                                     {batch.anomaly && (
-                                        <p style={{color:"red"}}>
+                                        <p style={{ color: "red" }}>
                                             ⚠ Anomaly detected in crop condition
                                         </p>
                                     )}
