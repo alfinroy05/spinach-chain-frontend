@@ -4,7 +4,7 @@ import axios from "axios";
 import Web3 from "web3";
 import "./FarmerDashboard.css";
 
-const CONTRACT_ADDRESS = "0xafCA34abb84f69bc1D4AbC54eC096dF7d5607dE3";
+const CONTRACT_ADDRESS = "0x826849f64E347BAA34a77360074E6569EaF0dDdd";
 const SEPOLIA_CHAIN_ID = "0xaa36a7";
 
 // 🔥 KEEP YOUR FULL ABI HERE
